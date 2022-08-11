@@ -1,0 +1,3 @@
+run="npm run dev"
+# run = "node index.js"
+entrypoint="src/App.jsx"
