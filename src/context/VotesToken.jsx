@@ -34,26 +34,28 @@ const TokenProvider = ({children}) => {
     startBlockNumberRef.current = await provider?.getBlockNumber()
   );
 
-  const updateContract = (name) => {
+  const updateContract = () => {
     const contract = new ethers.Contract(
       tokensAddress,
       tokensArtifact,
       provider.getSigner(0)
     );
-      setTokens(contract);
+    setTokens(contract);
     return contract
   }
 
   const isNew = (event) => event.blockNumber > startBlockNumber()
 
   const withThisAccount = (from, to) =>
-    from.toLowerCase() === account.toLowerCase() || to.toLowerCase() === account.toLowerCase()
+    from.toLowerCase() === account.toLowerCase() ||
+      to.toLowerCase() === account.toLowerCase()
 
   const transferEvent = (from, to, value, event) =>
     isNew(event) && withThisAccount(from, to) &&
     (async () => await checkAccess(tokens))();
 
   const claim = () => {
+    if (!tokens) return;
     try {
       tokens.claim();
     } catch (err) {
@@ -100,8 +102,7 @@ const TokenProvider = ({children}) => {
     const isMember = balance.gt(BN.from(0));
     const isInfluential = isMember && total.div(balance).lte(BN.from(10));
 
-    if (access.isMember !== isMember || access.isInfluential !== isInfluential)
-      setAccess(({ isMember, isInfluential }))
+    setAccess(({ isMember, isInfluential }))
   }
 
   useEffect(() => {
