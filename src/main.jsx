@@ -9,8 +9,8 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { blue } from '@mui/material/colors';
 
 import { Web3Provider } from './context/Web3'
+import { TokenProvider } from './context/VotesToken';
 
-import { VotingsProvider } from './context/Votings';
 import App from './App'
 
 const theme = createTheme({
@@ -59,9 +59,9 @@ ReactDOM.render(
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Web3Provider>
-        <VotingsProvider>
+        <TokenProvider>
           <App />
-        </VotingsProvider>
+        </TokenProvider>
       </Web3Provider>
     </ThemeProvider>
   </React.StrictMode>,

@@ -16,7 +16,7 @@ export default function(props) {
   const { account } = useContext(Web3Context)
 
   return (
-    <Box fullHeight sx={{ backgroundColor: blue[50] }}>
+    <Box sx={{ backgroundColor: blue[50] }}>
       <Router>
         <Header />
         <div className="main bg-secondary">

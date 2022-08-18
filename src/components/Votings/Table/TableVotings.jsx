@@ -12,7 +12,7 @@ import {
   TableRow,
   TableCell,
   TablePagination,
-} from '@mui/material';
+} from '../../UI';
 
 
 import { VotingsContext } from "../../../context/Votings"

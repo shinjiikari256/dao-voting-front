@@ -8,9 +8,6 @@ import { abi as engineArtifact } from '../../contracts/VotingMachine.json'
 import { DEFI as defiAddress } from '../../contracts/DEFI-contract-address.json'
 import { abi as defiArtifact } from '../../contracts/DEFI.json'
 
-import { LazyGolos as tokensAddress } from '../../contracts/LazyGolos-contract-address.json'
-import { abi as tokensArtifact } from '../../contracts/LazyGolos.json'
-
 import { Web3Context } from "./Web3"
 
 const ERROR_CODE_TX_REJECTED_BY_USER = 4001
@@ -35,19 +32,37 @@ const VotingsProvider = ({children}) => {
   let [defi, setDefi] = useState(null);
   let [fee, setFee] = useState(0);
 
-  let [tokens, setTokens] = useState(null);
-
-  let [ access, setAccess ] = useState({
-    isMember: false,
-    isInfluential: false,
-    isChairman: false,
-  });
+  let [ haveEnded, setHaveEnded ] = useState(false);
 
   const startBlockNumberRef = useRef(0);
   const startBlockNumber = () => startBlockNumberRef?.current;
   const updateBlockNumber = async () => (
     startBlockNumberRef.current = await provider?.getBlockNumber()
   );
+
+  const timersRef = useRef({});
+  const timers = () => timersRef?.current;
+  const addTimer = (id, sec) => (
+    timersRef.current = { ...timersRef.current, [id]: setTimeout(() => {
+      setHaveEnded(true);
+      console.log('ended:', id);
+      clearTimer(id);
+    }, sec)}
+  );
+  const clearTimer = (id) => {
+    clearTimeout(timersRef.current[id]);
+    delete timersRef.current[id];
+  };
+  const clearTimers = () => {
+    const _timers = timers()
+    for (let id in _timers) {
+      clearTimeout(_timers[id]);
+    }
+    timersRef.current = {}
+  };
+
+  window.timers = timers;
+
   const createData = (id, fee, deadline, yes = BN.from(0), no = BN.from(0)) => ({
     id,
     fee: fee.toNumber(),
@@ -59,7 +74,6 @@ const VotingsProvider = ({children}) => {
   const contracts = {
     'defi':   { set: setDefi  , address: defiAddress,   abi: defiArtifact   },
     'engine': { set: setEngine, address: engineAddress, abi: engineArtifact },
-    'tokens': { set: setTokens, address: tokensAddress, abi: tokensArtifact },
   }
 
   const updateContract = (name) => {
@@ -89,10 +103,16 @@ const VotingsProvider = ({children}) => {
 
     console.log(votings);
     setList(votings)
+    setHaveEnded(true)
     return votings
   }
 
-  const updateList = (newVotings) => setList([ newVotings, ...list ])
+  const updateList = (newVotings) => {
+    const now = Date.now();
+    const { id, deadline } = newVotings;
+    addTimer(id, deadline * 1000 - now);
+    setList([ newVotings, ...list ])
+  }
 
   const updateVote = (id, yes, no) =>
     setList([...list].map((v) => v.id == id ? ({...v, yes, no}) : v))
@@ -117,36 +137,10 @@ const VotingsProvider = ({children}) => {
 
   const vote = (id) => (isAgree) => engine?.vote(id, isAgree)
 
-  const summarizing = () => engine?.summarizingAll()
-
-  const balanceOf = (address) => tokens.balanceOf(address)
-
-  const claim = () => {
-    try {
-      tokens.claim();
-    } catch (err) {
-      handlerError(err)
-    }
-  }
-
-  const format = (balance, dec = 0) => {
-    const str = balance.toString()
-    if (dec === 0) return str
-    const zeros = '0'.repeat(Math.max(dec + 1 - str.length, 0))
-    const regexp = new RegExp(`(\\d*)(\\d{${dec}})`)
-    return (zeros + str).replace(regexp, `$1.$2`)
-  };
-
-  const getBalance = async (address) => {
-    if (!tokens) return 0
-    try {
-      const _decimals = await tokens.decimals();
-      const _balance = await tokens.balanceOf(address || account)
-      return format(_balance, _decimals);
-    } catch (err) {
-      handlerError(err)
-    }
-    return 0
+  const summarizing = () => {
+    if (!engine) return;
+    engine.summarizingAll();
+    setHaveEnded(false);
   }
 
   const resubscribeOnEvents = (oldEngine, newEngine) => {
@@ -162,51 +156,65 @@ const VotingsProvider = ({children}) => {
       newEngine?.on(event, eventsCallbacks[event]);
   }
 
-  const checkAccess = async (_engine, _tokens) => {
-    const balance = await _tokens.balanceOf(account);
-    const total = await _tokens.totalSupply();
-    const owner = await engine.owner();
+  const checkEnded = async (_engine) => {
+    const openedId = (await _engine.actualVotings()).slice(1);
+    if (openedId.length === 0) return;
 
-    const isMember = balance.gt(BN.from(0));
-    const isInfluential = isMember && total.div(balance).lte(BN.from(10));
-    const isChairman = account.toLowerCase() == owner.toLowerCase();
+    const now = Date.now() / 1000;
+    const opened = list.filter(({id}) => openedId.includes(id));
+    let ended = opened.some(({deadline})=> deadline <= now);
+    setHaveEnded(ended);
 
-    setAccess(() => ({ isMember, isInfluential, isChairman, }))
+    let actual = opened.filter(({deadline})=> deadline > now);
+    const _now = Date.now();
+    actual.forEach(({id, deadline}) => {
+      console.log('create timer:', id, deadline * 1000 - _now)
+      timers[id] || addTimer(id, deadline * 1000 - _now);
+    });
   }
 
   const updateFee = async (_defi) => setFee((await _defi.FEE()).toNumber())
+
+  useEffect(() => () => {
+    clearTimers()
+  }, [])
+
+  const updateFillData = async (_engine, _defi) => {
+    await updateFee(_defi)
+    await uploadList(_engine)
+    await checkEnded(_engine)
+  }
 
   useEffect(() => {
     if (!provider) return;
 
     const newDefi = updateContract('defi');
     const newEngine = updateContract('engine');
-    const newTokens = updateContract('tokens');
 
-    (async () => {
-      await updateFee(newDefi)
-      await uploadList(newEngine)
-    })();
+    (async () => await updateFillData(newEngine, newDefi))();
 
     resubscribeOnEvents(engine, newEngine);
   }, [provider])
 
   useEffect(() => {
-    (async () => await checkAccess(engine, tokens))();
     resubscribeOnEvents(engine, engine)
   }, [list])
+
+  useEffect(() => {
+    if (!engine) return;
+
+    (async () => await checkEnded(engine))();
+  }, [haveEnded])
 
   return (
     <VotingsContext.Provider
       value={{
         fee,
-        access,
+        haveEnded,
         votingsList: list,
         createVoting,
         vote,
         summarizing,
-        getBalance,
-        claim
       }}
     >
       {children}

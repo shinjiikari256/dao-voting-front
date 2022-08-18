@@ -1,31 +1,46 @@
 export {
-    Box,
-    TextField,
-    InputLabel,
-    MenuItem,
-    FormControl,
-    Select,
-    FormControlLabel,
-    Switch,
-    Button,
-    Alert,
-    Collapse,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    TableCell,
-    TableRow,
-    IconButton,
-    Typography
+  Box,
+  Paper,
+  TextField,
+  InputLabel,
+  MenuItem,
+  FormControl,
+  FormControlLabel,
+  Select,
+  Switch,
+  Button,
+  IconButton,
+  Alert,
+  Collapse,
+  Typography,
+  Chip,
 } from '@mui/material';
 
+export {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from '@mui/material';
+
+export {
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TablePagination,
+} from '@mui/material';
+
+import DoneIcon from '@mui/icons-material/Done';
+import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 
-export { CloseIcon, ThumbUpIcon, ThumbDownIcon };
+export { CloseIcon, ThumbUpIcon, ThumbDownIcon, DoneIcon, AddIcon  };
 
 
 import { styled } from '@mui/material/styles';

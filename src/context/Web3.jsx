@@ -53,8 +53,8 @@ const Web3Provider = ({children}) => {
   }
 
   const _initialize = async (selectedAddress) => {
-    setProvider(new providers.Web3Provider(ethereum))
-    setAccount(selectedAddress)
+    setAccount(() => selectedAddress)
+    setProvider(() => new providers.Web3Provider(ethereum))
   }
 
   const dismissNetworkError = () => {

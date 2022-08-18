@@ -3,18 +3,19 @@ import React, { useContext, useState } from 'react';
 import {
   Box,
   Chip,
-  Typography
-} from '@mui/material';
-
-import DoneIcon from '@mui/icons-material/Done';
-import AddIcon from '@mui/icons-material/Add';
+  Typography,
+  DoneIcon,
+  AddIcon,
+} from '../UI';
 
 import { AddProposal } from './AddProposal'
 
 import { VotingsContext } from "../../context/Votings"
+import { TokenContext } from "../../context/VotesToken"
 
 export const VotingsHeader = () => {
-  const { fee, summarizing, access: { isChairman, isInfluential } } = useContext(VotingsContext)
+  const { fee, summarizing, haveEnded } = useContext(VotingsContext)
+  const { access: { isInfluential } } = useContext(TokenContext)
 
   const [openProposal, openModalProposal] = useState(false)
 
@@ -36,7 +37,7 @@ export const VotingsHeader = () => {
         <VotingsChip
           label='Summarizing'
           icon={ <DoneIcon /> }
-          disabled={!isChairman}
+          disabled={!haveEnded}
           onClick={summarizing}
         />
 
@@ -52,7 +53,9 @@ export const VotingsHeader = () => {
         />
       </Box>
 
-      <AddProposal ctrl={openProposal} closeDialog={handleClose}/>
+      {openProposal &&
+        <AddProposal closeDialog={handleClose}/>
+      }
     </>
   )
 }

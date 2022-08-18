@@ -6,10 +6,7 @@ import {
   IconButton,
   Typography,
   ProgressLabel,
-  BorderLinearProgress
-} from '../../UI';
-
-import {
+  BorderLinearProgress,
   ThumbUpIcon,
   ThumbDownIcon,
 } from '../../UI';
@@ -36,26 +33,21 @@ const RejectButton = ({onClick, disabled}) => (
   <IconButton disabled={disabled} color="error" onClick={onClick}> <ThumbDownIcon/> </IconButton>
 );
 
-// const DateTime = ({deadline}) => {
-//   const dateTime = new Date(deadline * 1000)
-//   const [ date, time ] = dateTime.toLocaleString().split(', ')
-
-//   return (<>
-//       <Typography>{date}</Typography>
-//       <Typography>{time}</Typography>
-//     </>)
-// }
-
 const DateTime = ({deadline}) => {
-  if ( deadline == 0 ) return <>
-    <Typography/>
-    <Typography/>
-  </>
 
-  let days = Math.floor(deadline / (24*60*60*1000));
+  const leftTime = () => deadline - Date.now() > 0 ? deadline - Date.now() : 0
+
+  const [ left, setLeft ] = useState(leftTime())
+
+  useEffect(() => {
+    const tick = setInterval(() => setLeft(() => leftTime()), 1000)
+    if (leftTime() == 0) return clearInterval(tick);
+  }, []);
+
   const formatDays = (d) => [ ` `, `${d} day` ][d] || `${d} days`;
-  console.log()
-  const time = new Date(deadline).toLocaleTimeString('en-GB', {
+  let days = Math.floor(left / (24*60*60*1000));
+
+  const time = new Date(left).toLocaleTimeString('en-GB', {
     timeZone:'Etc/UTC',
     hour12: false,
     hour: '2-digit',
@@ -63,22 +55,29 @@ const DateTime = ({deadline}) => {
     second: '2-digit'
   });
 
-  return (<>
-      <Typography>{formatDays(days)}</Typography>
-      <Typography>{time}</Typography>
-    </>)
+  return left == 0
+    ? (<>
+        <Typography/>
+        <Typography/>
+      </>
+    ) : (<>
+        <Typography>{formatDays(days)}</Typography>
+        <Typography>{time}</Typography>
+      </>
+    )
 }
 
 import { VotingsContext } from "../../../context/Votings"
+import { TokenContext } from "../../../context/VotesToken"
 
-const TableRowVoteView = ({ voting: { fee, leftTime, yes, no }, vote, disabled }) => (
+const TableRowVoteView = ({ voting: { fee, deadline, yes, no }, vote, disabled }) => (
   <TableRow>
     <TableCell align="center" component="th" scope="row">
       <Typography>{fee}</Typography>
     </TableCell>
 
     <TableCell align="center">
-      <DateTime deadline={leftTime} />
+      <DateTime deadline={deadline} />
     </TableCell>
 
     <TableCell align="center">
@@ -104,26 +103,20 @@ const TableRowVoteView = ({ voting: { fee, leftTime, yes, no }, vote, disabled }
 )
 
 const TableRowVote = ({ voting: {id, fee, deadline, yes, no} }) => {
-  const { vote, access: { isMember } } = useContext(VotingsContext)
+  const { vote } = useContext(VotingsContext)
+  const { access: { isMember } } = useContext(TokenContext)
   const unixDeadline = useMemo(() => deadline * 1000);
   const leftTime = () => unixDeadline - Date.now() > 0 ? unixDeadline - Date.now() : 0
   const [ isEnd, setIsEnd ] = useState(leftTime() <= 0)
-  const [ left, setLeft ] = useState(leftTime())
-  // let timeout
-  let tick
 
   useEffect(() => {
-    if (leftTime() == 0)
-      return clearInterval(tick);
-    tick = setInterval(() => {
-      setLeft(() => leftTime());
-      setIsEnd(() => leftTime() <= 0)
-    }, 1000)
+      const setEnd = setTimeout(() => setIsEnd(() => true), leftTime())
+      return () => clearTimeout(setEnd);
   }, []);
 
   return (
     <TableRowVoteView
-      voting={{fee, leftTime: left, yes, no}}
+      voting={{fee, deadline: unixDeadline, yes, no}}
       disabled={isEnd || !isMember}
       vote={vote(id)}
     />

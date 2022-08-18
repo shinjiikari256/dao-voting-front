@@ -11,13 +11,8 @@ import * as Yup from 'yup';
 
 import { VotingsContext } from "../../context/Votings"
 
-const AddProposal = ({ctrl, closeDialog}) => {
+const AddProposal = ({closeDialog}) => {
   const { createVoting } = useContext(VotingsContext)
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    setOpen(ctrl)
-  },[ctrl])
 
   const notRequiredNumber = () => Yup.number().nullable(true)
       .notRequired()
@@ -40,9 +35,11 @@ const AddProposal = ({ctrl, closeDialog}) => {
   const schema = Yup.object().shape({
     newFee: Yup.number()
       .required('Value is required.')
-      .typeError('Value must be a number'),
+      .typeError('Value must be a number')
+      .min(0,`Value must be between 0 and 100.`)
+      .max(100,`Value must be between 0 and 100.`),
     withDuration: Yup.boolean(),
-    days: durationValidate('Days', 0, 599),
+    days: durationValidate('Days', 0, 15),
     hours: durationValidate('Hours', 0, 23),
     minutes: durationValidate('Minutes', 0, 59),
     seconds: durationValidate('Seconds', 0, 59),
@@ -80,9 +77,7 @@ const AddProposal = ({ctrl, closeDialog}) => {
     }
     const [D, H, M, S] = getValues(['days', 'hours', 'minutes', 'seconds'])
           .map(v => v === undefined ? 0 : Number(v));
-    console.log('getDuration:', [D, H, M, S]);
     const total = D * _sol.day + H * _sol.hour + M * _sol.minute + S * _sol.second;
-    console.log('total:', total);
     return total;
   }
 
@@ -118,7 +113,7 @@ const AddProposal = ({ctrl, closeDialog}) => {
   }
 
   return (
-    <Dialog open={!!open} onClose={closeDialog}>
+    <Dialog open onClose={closeDialog}>
       <DialogTitle>You can propose a new FEE value</DialogTitle>
       <DialogContent component="form">
         {NumberInput({name: "newFee", label: "New FEE", fullWidth: true})}
@@ -136,8 +131,7 @@ const AddProposal = ({ctrl, closeDialog}) => {
           label="Set the duration"
           sx={{flexGrow: '0'}}
         />
-        <Box fullWidth  sx={{ display: 'flex', flexJustify: 'center', gap: 2 }}>
-
+        <Box fullWidth sx={{ display: 'flex', flexJustify: 'center', gap: 2 }}>
           {DurationInput({label: "Days"})}
           {DurationInput({label: "Hours"})}
           {DurationInput({label: "Minutes"})}

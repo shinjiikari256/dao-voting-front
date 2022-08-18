@@ -7,24 +7,26 @@ import { Web3Context } from '../context/Web3'
 export const NetworkErrorMessage = () => {
   const { networkError, dismissNetworkError } = useContext(Web3Context)
   return (
-  <Collapse in={!!networkError}>
-    <Alert
-      action={
-        <IconButton
-          aria-label="close"
-          color="inherit"
-          size="small"
-          onClick={dismissNetworkError}
-        >
-          <CloseIcon fontSize="inherit" />
-        </IconButton>
-        }
-      sx={{ mt: 2 }}
-      severity="error"
-    >
-      {networkError}
-    </Alert>
-  </Collapse>
+    <>
+      {networkError && (
+          <Alert
+            action={
+              <IconButton
+                aria-label="close"
+                color="inherit"
+                size="small"
+                onClick={dismissNetworkError}
+              >
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+              }
+            sx={{ mt: 2 }}
+            severity="error"
+          >
+            {networkError}
+          </Alert>
+      )}
+    </>
   )
 }
 

@@ -1,18 +1,17 @@
 import React, { useState, useContext } from "react"
 
-import { Box, Button, TextField } from './UI';
+import { Paper, Box, Button, TextField } from './UI';
 
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 
 import { Web3Context } from "../context/Web3"
-import { VotingsContext } from "../context/Votings"
-import { Paper } from "@mui/material";
+import { TokenContext } from "../context/VotesToken"
 
 export const Claim = () => {
   const { account } = useContext(Web3Context)
-  const { getBalance, claim } = useContext(VotingsContext)
+  const { getBalance, claim } = useContext(TokenContext)
 
   const ADDRESS = '0x[0-9a-f]{40}';
 
