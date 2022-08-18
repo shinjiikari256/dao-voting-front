@@ -103,7 +103,6 @@ const VotingsProvider = ({children}) => {
 
     console.log(votings);
     setList(votings)
-    setHaveEnded(true)
     return votings
   }
 
@@ -202,7 +201,6 @@ const VotingsProvider = ({children}) => {
 
   useEffect(() => {
     if (!engine) return;
-
     (async () => await checkEnded(engine))();
   }, [haveEnded])
 
