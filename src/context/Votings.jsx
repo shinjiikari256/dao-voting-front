@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, useEffect } from 'react'
+import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react'
 
 import { ethers, BigNumber as BN } from "ethers"
 
@@ -19,17 +19,15 @@ const handlerError = (err) => {
 
 const VotingsContext = createContext({
   fee: 0,
-  engine: null,
   votingsList: [],
 })
 
 const VotingsProvider = ({children}) => {
-  const { provider, account } = useContext(Web3Context)
+  const { provider } = useContext(Web3Context)
 
   let [engine, setEngine] = useState(null);
   let [list, setList] = useState([]);
 
-  let [defi, setDefi] = useState(null);
   let [fee, setFee] = useState(0);
 
   let [ haveEnded, setHaveEnded ] = useState(false);
@@ -45,7 +43,6 @@ const VotingsProvider = ({children}) => {
   const addTimer = (id, sec) => (
     timersRef.current = { ...timersRef.current, [id]: setTimeout(() => {
       setHaveEnded(true);
-      console.log('ended:', id);
       clearTimer(id);
     }, sec)}
   );
@@ -72,22 +69,25 @@ const VotingsProvider = ({children}) => {
   })
 
   const contracts = {
-    'defi':   { set: setDefi  , address: defiAddress,   abi: defiArtifact   },
-    'engine': { set: setEngine, address: engineAddress, abi: engineArtifact },
+    'defi':   { address: defiAddress,   abi: defiArtifact   },
+    'engine': { address: engineAddress, abi: engineArtifact },
   }
 
   const updateContract = (name) => {
+    if (!provider) return;
     if (!contracts[name]) return null;
-    const {set, address, abi} = contracts[name];
+    const {address, abi} = contracts[name];
     const contract = new ethers.Contract(address, abi, provider.getSigner(0));
-    set(contract);
     return contract
   }
 
-  const uploadList = async (_engine) => {
-    if (!_engine) return;
+  const uploadList = async () => {
+    const _engine = updateContract('engine');
+    if (!_engine) return [];
     await updateBlockNumber()
+
     console.time('getAllVotings')
+
     const votedEvents = await _engine.queryFilter('UpdateVote')
     const createEvents = await _engine.queryFilter('CreatedVoting')
 
@@ -125,21 +125,25 @@ const VotingsProvider = ({children}) => {
     isNew(event) && updateVote(id, yes.toNumber(), no.toNumber())
 
   const summarizingEvent = (id, fee, yes, no, event) =>
-    isNew(event) && yes.gt(no) &&
-      (async () => await updateFee(defi))();
+    isNew(event) && (async () => await updateFee())();
 
   const createVoting = (fee, duration = 0) => {
-    duration
-    ? engine['createVoting(uint256,uint256)'](fee, duration)
-    : engine['createVoting(uint256)'](fee)
+    if (!engine) return;
+    if (duration)
+      engine['createVoting(uint256,uint256)'](fee, duration)
+    else
+      engine['createVoting(uint256)'](fee)
   }
 
-  const vote = (id) => (isAgree) => engine?.vote(id, isAgree)
+  const vote = (id) => (isAgree) => {
+    if (!engine) return;
+    engine.vote(id, isAgree)
+  }
 
   const summarizing = () => {
+    setHaveEnded(false);
     if (!engine) return;
     engine.summarizingAll();
-    setHaveEnded(false);
   }
 
   const resubscribeOnEvents = (oldEngine, newEngine) => {
@@ -148,61 +152,72 @@ const VotingsProvider = ({children}) => {
       'UpdateVote': updateVoteEvent,
       'SummarizedVoting': summarizingEvent
     }
-    for (let event in eventsCallbacks)
-      oldEngine?.off(event, eventsCallbacks[event]);
+    if (oldEngine)
+      for (let event in eventsCallbacks)
+        oldEngine.off(event, eventsCallbacks[event]);
     (async () => await updateBlockNumber())();
-    for (let event in eventsCallbacks)
-      newEngine?.on(event, eventsCallbacks[event]);
+    if (newEngine)
+      for (let event in eventsCallbacks)
+        newEngine.on(event, eventsCallbacks[event]);
   }
 
-  const checkEnded = async (_engine) => {
+  const checkEnded = async () => {
+    const _engine = updateContract('engine');
+    if (!_engine) return;
+
+    const createEvents = await _engine.queryFilter('CreatedVoting');
+
+    const votings = createEvents
+      .map(({args: {id, fee, endTime}}) => createData(id, fee, endTime))
+
     const openedId = (await _engine.actualVotings()).slice(1);
     if (openedId.length === 0) return;
 
     const now = Date.now() / 1000;
-    const opened = list.filter(({id}) => openedId.includes(id));
-    let ended = opened.some(({deadline})=> deadline <= now);
+    const opened = votings.filter(({id}) => openedId.includes(id));
+
+    const ended = opened.some(({deadline}) => deadline <= now);
+    console.log('closed', ended)
     setHaveEnded(ended);
 
-    let actual = opened.filter(({deadline})=> deadline > now);
+    let actual = opened.filter(({deadline}) => deadline > now);
     const _now = Date.now();
     actual.forEach(({id, deadline}) => {
-      console.log('create timer:', id, deadline * 1000 - _now)
       timers[id] || addTimer(id, deadline * 1000 - _now);
     });
   }
 
-  const updateFee = async (_defi) => setFee((await _defi.FEE()).toNumber())
+  const updateFee = async () => {
+    await updateBlockNumber()
+    await checkEnded()
+
+    const _defi = updateContract('defi');
+    if (!_defi) return;
+
+    const newFee = (await _defi.FEE()).toNumber();
+    setFee(() => newFee)
+  }
+
+  const updateFillData = async () => {
+    await updateFee();
+    await uploadList();
+  }
 
   useEffect(() => () => {
     clearTimers()
   }, [])
 
-  const updateFillData = async (_engine, _defi) => {
-    await updateFee(_defi)
-    await uploadList(_engine)
-    await checkEnded(_engine)
-  }
-
   useEffect(() => {
-    if (!provider) return;
+    (async () => await updateFillData())();
 
-    const newDefi = updateContract('defi');
     const newEngine = updateContract('engine');
-
-    (async () => await updateFillData(newEngine, newDefi))();
-
+    setEngine(() => newEngine);
     resubscribeOnEvents(engine, newEngine);
   }, [provider])
 
   useEffect(() => {
     resubscribeOnEvents(engine, engine)
   }, [list])
-
-  useEffect(() => {
-    if (!engine) return;
-    (async () => await checkEnded(engine))();
-  }, [haveEnded])
 
   return (
     <VotingsContext.Provider

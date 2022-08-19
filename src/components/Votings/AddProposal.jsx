@@ -89,7 +89,7 @@ const AddProposal = ({closeDialog}) => {
     closeDialog();
   };
 
-  const NumberInput = ({name, label, ...props}) => {
+  const NumberInput = ({ name, label, disabled = false }) => {
     return (
       <TextField
           inputRef={register(name)}
@@ -102,21 +102,22 @@ const AddProposal = ({closeDialog}) => {
           placeholder="0"
           error={!!errors[name]}
           helperText={errors[name]?.message}
-          {...props}
+          fullWidth
+          disabled={disabled}
         />
     )
   }
 
-  const DurationInput = ({label, ...props}) => {
+  const DurationInput = ({label}) => {
     const name = label.toLowerCase();
-    return NumberInput({name, label, disabled: !withDuration, ...props})
+    return NumberInput({name, label, disabled: !withDuration})
   }
 
   return (
     <Dialog open onClose={closeDialog}>
       <DialogTitle>You can propose a new FEE value</DialogTitle>
       <DialogContent component="form">
-        {NumberInput({name: "newFee", label: "New FEE", fullWidth: true})}
+        {NumberInput({name: "newFee", label: "New FEE"})}
 
         <FormControlLabel
           control={
