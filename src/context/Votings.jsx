@@ -181,6 +181,7 @@ const VotingsProvider = ({children}) => {
     setHaveEnded(ended);
 
     let actual = opened.filter(({deadline}) => deadline > now);
+
     const _now = Date.now();
     actual.forEach(({id, deadline}) => {
       timers[id] || addTimer(id, deadline * 1000 - _now);
