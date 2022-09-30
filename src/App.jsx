@@ -7,6 +7,7 @@ import { NetworkErrorMessage } from './components/NetworkErrorMessage';
 
 import ClaimPage from './pages/ClaimPage';
 import VotingsPage from './pages/VotingsPage';
+import AuctionsPage from './pages/AuctionsPage';
 
 import { Web3Context } from './context/Web3'
 import { Box } from '@mui/material';
@@ -23,7 +24,8 @@ export default function(props) {
           <NetworkErrorMessage />
           {account && (
               <Routes>
-                <Route path="/" element={ <VotingsPage /> } />
+                <Route path="/" element={ <AuctionsPage /> } />
+                <Route path="/votings" element={ <VotingsPage /> } />
                 <Route path="/claim" element={ <ClaimPage/> } />
               </Routes>
           )}
