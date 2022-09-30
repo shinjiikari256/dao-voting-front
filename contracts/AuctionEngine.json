@@ -1,0 +1,290 @@
+{
+  "name": "AuctionEngine",
+  "addresses": {
+    "localhost": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44"
+  },
+  "abi": [
+    {
+      "type": "constructor",
+      "payable": false,
+      "inputs": []
+    },
+    {
+      "type": "function",
+      "name": "BET_PART",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "END_BLOCKS",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "FUND_FEE",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "INITIATOR_FEE",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "MAX_FUND",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "MIN_FUND",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "TOUR_BLOCKS",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "auctions",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint64"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "address",
+          "name": "initiator"
+        },
+        {
+          "type": "address",
+          "name": "winner"
+        },
+        {
+          "type": "uint256",
+          "name": "lastBlock"
+        },
+        {
+          "type": "uint256",
+          "name": "targetFund"
+        },
+        {
+          "type": "uint256",
+          "name": "totalFund"
+        },
+        {
+          "type": "uint256",
+          "name": "bet"
+        },
+        {
+          "type": "uint64",
+          "name": "currentState"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "createAuction",
+      "constant": false,
+      "stateMutability": "payable",
+      "payable": true,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "_bet"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint64"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getReward",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint64",
+          "name": "id"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "getTargetBack",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint64",
+          "name": "id"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "makeBet",
+      "constant": false,
+      "stateMutability": "payable",
+      "payable": true,
+      "inputs": [
+        {
+          "type": "uint64",
+          "name": "id"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "owner",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "setVoting",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "vm"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "states",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint64"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": "FUND_FEE"
+        },
+        {
+          "type": "uint256",
+          "name": "INITIATOR_FEE"
+        },
+        {
+          "type": "uint256",
+          "name": "TOUR_BLOCKS"
+        },
+        {
+          "type": "uint256",
+          "name": "END_BLOCKS"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "updateParameter",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint8",
+          "name": "_type"
+        },
+        {
+          "type": "uint256",
+          "name": "_value"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "votingEngine",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address"
+        }
+      ]
+    }
+  ]
+}

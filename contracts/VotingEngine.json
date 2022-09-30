@@ -1,0 +1,236 @@
+{
+  "name": "VotingEngine",
+  "addresses": {
+    "localhost": "0x59b670e9fA9D0A427751Af201D676719a970857b"
+  },
+  "abi": [
+    {
+      "type": "constructor",
+      "payable": false,
+      "inputs": []
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "CreatedVoting",
+      "inputs": [
+        {
+          "type": "uint32",
+          "name": "id",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "initiator",
+          "indexed": true
+        },
+        {
+          "type": "uint256",
+          "name": "fee",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "startTime",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "endTime",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "SummarizedVoting",
+      "inputs": [
+        {
+          "type": "uint32",
+          "name": "id",
+          "indexed": true
+        },
+        {
+          "type": "uint256",
+          "name": "fee",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "yes",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "no",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "UpdateVote",
+      "inputs": [
+        {
+          "type": "uint32",
+          "name": "id",
+          "indexed": true
+        },
+        {
+          "type": "uint256",
+          "name": "yes",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "no",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "actualVotings",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint32[]"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "auction",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "createVoting",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint8",
+          "name": "_type"
+        },
+        {
+          "type": "uint256",
+          "name": "_value"
+        },
+        {
+          "type": "uint256",
+          "name": "_duration"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "isActual",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint32",
+          "name": "id"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "owner",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "setAuction",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_auction"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "setTokens",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "golos"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "summarizing",
+      "constant": false,
+      "payable": false,
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "token",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "vote",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint32",
+          "name": "id"
+        },
+        {
+          "type": "bool",
+          "name": "uAgree"
+        }
+      ],
+      "outputs": []
+    }
+  ]
+}

@@ -2,20 +2,12 @@ import React, { createContext, useContext, useState, useRef, useEffect, useCallb
 
 import { ethers, BigNumber as BN } from "ethers"
 
-import { VotingMachine as engineAddress } from '../../contracts/VotingMachine-contract-address.json'
-import { abi as engineArtifact } from '../../contracts/VotingMachine.json'
-
-import { DEFI as defiAddress } from '../../contracts/DEFI-contract-address.json'
-import { abi as defiArtifact } from '../../contracts/DEFI.json'
+import engineInfo from '../../contracts/VotingEngine.json'
+import auctionInfo from '../../contracts/AuctionEngine.json'
 
 import { Web3Context } from "./Web3"
 
-const ERROR_CODE_TX_REJECTED_BY_USER = 4001
-
-const handlerError = (err) => {
-  if (err.code !== ERROR_CODE_TX_REJECTED_BY_USER)
-    console.error(err ?.data ?.message ?? err ?.message)
-}
+import { handlerError, NET_NAME } from './common'
 
 const VotingsContext = createContext({
   fee: 0,
@@ -69,8 +61,8 @@ const VotingsProvider = ({children}) => {
   })
 
   const contracts = {
-    'defi':   { address: defiAddress,   abi: defiArtifact   },
-    'engine': { address: engineAddress, abi: engineArtifact },
+    'auction':   { address: auctionInfo.addresses[NET_NAME], abi: auctionInfo.abi },
+    'engine': { address: engineInfo.addresses[NET_NAME],  abi: engineInfo.abi  },
   }
 
   const updateContract = (name) => {
@@ -129,10 +121,7 @@ const VotingsProvider = ({children}) => {
 
   const createVoting = (fee, duration = 0) => {
     if (!engine) return;
-    if (duration)
-      engine['createVoting(uint256,uint256)'](fee, duration)
-    else
-      engine['createVoting(uint256)'](fee)
+    engine.createVoting(1, fee, duration)
   }
 
   const vote = (id) => (isAgree) => {
@@ -143,7 +132,7 @@ const VotingsProvider = ({children}) => {
   const summarizing = () => {
     setHaveEnded(false);
     if (!engine) return;
-    engine.summarizingAll();
+    engine.summarizing();
   }
 
   const resubscribeOnEvents = (oldEngine, newEngine) => {
@@ -152,13 +141,14 @@ const VotingsProvider = ({children}) => {
       'UpdateVote': updateVoteEvent,
       'SummarizedVoting': summarizingEvent
     }
-    if (oldEngine)
-      for (let event in eventsCallbacks)
-        oldEngine.off(event, eventsCallbacks[event]);
+
+    const eventsList = Object.entries(eventsCallbacks)
+
+    oldEngine &&
+      eventsList.forEach(([event, callback]) => oldEngine.off(event, callback));
     (async () => await updateBlockNumber())();
-    if (newEngine)
-      for (let event in eventsCallbacks)
-        newEngine.on(event, eventsCallbacks[event]);
+    newEngine &&
+      eventsList.forEach(([event, callback]) => newEngine.on(event, callback))
   }
 
   const checkEnded = async () => {
@@ -192,10 +182,10 @@ const VotingsProvider = ({children}) => {
     await updateBlockNumber()
     await checkEnded()
 
-    const _defi = updateContract('defi');
-    if (!_defi) return;
+    const _auction = updateContract('auction');
+    if (!_auction) return;
 
-    const newFee = (await _defi.FEE()).toNumber();
+    const newFee = (await _auction.INITIATOR_FEE()).toNumber();
     setFee(() => newFee)
   }
 

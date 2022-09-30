@@ -1,3 +1,0 @@
-run="yarn dev"
-# run = "node index.js"
-entrypoint="src/main.jsx"

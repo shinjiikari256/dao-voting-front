@@ -2,17 +2,11 @@ import React, { createContext, useContext, useState, useRef, useEffect } from 'r
 
 import { ethers, BigNumber as BN } from "ethers"
 
-import { LazyGolos as tokensAddress } from '../../contracts/LazyGolos-contract-address.json'
-import { abi as tokensArtifact } from '../../contracts/LazyGolos.json'
+import tokenInfo from '../../contracts/LazyGolos.json'
 
 import { Web3Context } from "./Web3"
 
-const ERROR_CODE_TX_REJECTED_BY_USER = 4001
-
-const handlerError = (err) => {
-  if (err.code !== ERROR_CODE_TX_REJECTED_BY_USER)
-    console.error(err ?.data ?.message ?? err ?.message)
-}
+import { handlerError, NET_NAME } from './common'
 
 const TokenContext = createContext({
   access: null
@@ -36,8 +30,8 @@ const TokenProvider = ({children}) => {
 
   const updateContract = () => {
     const contract = new ethers.Contract(
-      tokensAddress,
-      tokensArtifact,
+      tokenInfo.addresses[NET_NAME],
+      tokenInfo.abi,
       provider.getSigner(0)
     );
     setTokens(contract);

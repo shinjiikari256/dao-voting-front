@@ -9,8 +9,14 @@ const Web3Context = createContext({
   networkError: null
 })
 
+const metamaskText = <span style={{textDecoration: 'underline'}}>Metamask</span>
+const linkMetamask = <a href="https://metamask.io/" target="_blank">🦊 {metamaskText}</a>
+const InstallMetamask = <span>Please install {linkMetamask}!</span>
+
 const Web3Provider = ({children}) => {
   const { ethereum } = window;
+
+  const getCurrentAccount = async () => (await ethereum.request({ method: 'eth_requestAccounts', }))[0]
 
   const [account, setAccount] = useState(null)
   const [provider, setProvider] = useState(null)
@@ -23,19 +29,13 @@ const Web3Provider = ({children}) => {
     setNetworkError(null)
   }
 
-  const linkMetamask = <a href="https://metamask.io/" target="_blank" style={{textDecoration: 'underline'}}>Metamask!</a>
-  const installMetamask = <span>Please install {linkMetamask}</span>
-
   const connectWallet = async () => {
     if (ethereum === undefined) {
-      setNetworkError(installMetamask)
+      setNetworkError(InstallMetamask)
       return
     }
 
-    const [ selectedAddress ] = await ethereum.request({
-      method: 'eth_requestAccounts',
-    })
-
+    const selectedAddress = await getCurrentAccount()
     _initialize(selectedAddress)
 
     ethereum.on('accountsChanged', ([newAddress]) => {
@@ -47,7 +47,7 @@ const Web3Provider = ({children}) => {
       _initialize(newAddress)
     })
 
-    ethereum.on('chainChanged', ([networkId]) => {
+    ethereum.on('chainChanged', (chainId) => {
       _resetState()
     })
   }
